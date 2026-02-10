@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Background Remover Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-label {
+            display: inline-block;
+            padding: 20px 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .upload-label:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .images-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .image-box {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .image-box h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .canvas-wrapper {
+            min-height: 350px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e5e7eb;
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 400px;
+            display: none;
+        }
+
+        canvas.show {
+            display: block;
+        }
+
+        .placeholder {
+            color: #9ca3af;
+        }
+
+        .editor-panel {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            display: none;
+        }
+
+        .editor-panel.show {
+            display: block;
+        }
+
+        .editor-section {
+            margin-bottom: 15px;
+        }
+
+        .editor-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .editor-section label {
+            display: block;
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .ratio-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .ratio-btn {
+            padding: 8px 16px;
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .ratio-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .ratio-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-input {
+            width: 60px;
+            height: 40px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .color-presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .color-preset {
+            width: 35px;
+            height: 35px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+
+        .color-preset:hover {
+            transform: scale(1.1);
+            border-color: #667eea;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        button, .download-btn {
+            padding: 15px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s;
+        }
+
+        #removeBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        #removeBtn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        #removeBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn {
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            display: none;
+        }
+
+        .download-btn.show {
+            display: inline-block;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        #status {
+            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        #status.show {
+            display: block;
+        }
+
+        #status.error {
+            background: #fee;
+            color: #c00;
+        }
+
+        #status.success {
+            background: #efe;
+            color: #0a0;
+        }
+
+        #status.info {
+            background: #eef;
+            color: #00a;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .timer.show {
+            display: block;
+        }
+
+        .progress {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress.show {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s;
+            animation: progress 2s infinite;
+        }
+
+        @keyframes progress {
+            0% { width: 0%; }
+            50% { width: 100%; }
+            100% { width: 0%; }
+        }
+
+        @media (max-width: 768px) {
+            .images-container {
+                grid-template-columns: 1fr;
+            }
+            
+            button, .download-btn {
+                display: block;
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            .ratio-buttons, .color-presets {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Background Remover Pro</h1>
+        
+        <div class="upload-section">
+            <label for="upload" class="upload-label">
+                📁 Choose an Image
+            </label>
+            <input type="file" id="upload" accept="image/*" hidden>
+        </div>
+
+        <div class="images-container">
+            <!-- Original Image -->
+            <div class="image-box">
+                <h3>Original</h3>
+                <div class="canvas-wrapper">
+                    <canvas id="originalCanvas"></canvas>
+                    <p class="placeholder" id="originalPlaceholder">No image selected</p>
+                </div>
+                
+                <div class="editor-panel" id="originalEditor">
+                    <div class="editor-section">
+                        <label>📐 Aspect Ratio</label>
+                        <div class="ratio-buttons">
+                            <button class="ratio-btn active" data-ratio="original" data-target="original">Original</button>
+                            <button class="ratio-btn" data-ratio="1:1" data-target="original">1:1</button>
+                            <button class="ratio-btn" data-ratio="4:3" data-target="original">4:3</button>
+                            <button class="ratio-btn" data-ratio="16:9" data-target="original">16:9</button>
+                            <button class="ratio-btn" data-ratio="9:16" data-target="original">9:16</button>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-section">
+                        <label>🎨 Background Color</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="originalColorPicker" class="color-input" value="#ffffff">
+                            <div class="color-presets">
+                                <div class="color-preset" style="background: #ffffff;" data-color="#ffffff" data-target="original"></div>
+                                <div class="color-preset" style="background: #000000;" data-color="#000000" data-target="original"></div>
+                                <div class="color-preset" style="background: #f3f4f6;" data-color="#f3f4f6" data-target="original"></div>
+                                <div class="color-preset" style="background: #3b82f6;" data-color="#3b82f6" data-target="original"></div>
+                                <div class="color-preset" style="background: #10b981;" data-color="#10b981" data-target="original"></div>
+                                <div class="color-preset" style="background: #f59e0b;" data-color="#f59e0b" data-target="original"></div>
+                                <div class="color-preset" style="background: #ef4444;" data-color="#ef4444" data-target="original"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Image -->
+            <div class="image-box">
+                <h3>Background Removed</h3>
+                <div class="canvas-wrapper">
+                    <canvas id="resultCanvas"></canvas>
+                    <p class="placeholder" id="resultPlaceholder">Result will appear here</p>
+                </div>
+                
+                <div class="editor-panel" id="resultEditor">
+                    <div class="editor-section">
+                        <label>📐 Aspect Ratio</label>
+                        <div class="ratio-buttons">
+                            <button class="ratio-btn active" data-ratio="original" data-target="result">Original</button>
+                            <button class="ratio-btn" data-ratio="1:1" data-target="result">1:1</button>
+                            <button class="ratio-btn" data-ratio="4:3" data-target="result">4:3</button>
+                            <button class="ratio-btn" data-ratio="16:9" data-target="result">16:9</button>
+                            <button class="ratio-btn" data-ratio="9:16" data-target="result">9:16</button>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-section">
+                        <label>🎨 Background Color</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="resultColorPicker" class="color-input" value="#ffffff">
+                            <div class="color-presets">
+                                <div class="color-preset" style="background: #ffffff;" data-color="#ffffff" data-target="result"></div>
+                                <div class="color-preset" style="background: #000000;" data-color="#000000" data-target="result"></div>
+                                <div class="color-preset" style="background: #f3f4f6;" data-color="#f3f4f6" data-target="result"></div>
+                                <div class="color-preset" style="background: #3b82f6;" data-color="#3b82f6" data-target="result"></div>
+                                <div class="color-preset" style="background: #10b981;" data-color="#10b981" data-target="result"></div>
+                                <div class="color-preset" style="background: #f59e0b;" data-color="#f59e0b" data-target="result"></div>
+                                <div class="color-preset" style="background: #ef4444;" data-color="#ef4444" data-target="result"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="removeBtn" disabled>Remove Background</button>
+            <a id="downloadBtn" class="download-btn">📥 Download Image</a>
+        </div>
+
+        <div class="timer" id="timer">⏱️ Processing time: 0.0s</div>
+        <div id="status"></div>
+        <div class="progress" id="progress">
+            <div class="progress-bar"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Canvas and image state
+        let originalImage = null;
+        let processedImage = null;
+        let originalImageData = null;
+        let processedImageData = null;
+        
+        const originalCanvas = document.getElementById('originalCanvas');
+        const resultCanvas = document.getElementById('resultCanvas');
+        const originalCtx = originalCanvas.getContext('2d');
+        const resultCtx = resultCanvas.getContext('2d');
+
+        // Settings
+        let originalSettings = { ratio: 'original', bgColor: '#ffffff' };
+        let resultSettings = { ratio: 'original', bgColor: '#ffffff' };
+
+        // Timer
+        let startTime = 0;
+        let timerInterval = null;
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            const progress = document.getElementById('progress');
+            status.textContent = message;
+            status.className = 'show ' + type;
+            
+            if (type === 'info') {
+                progress.classList.add('show');
+            } else {
+                progress.classList.remove('show');
+            }
+        }
+
+        // Timer functions
+        function startTimer() {
+            startTime = performance.now();
+            const timerEl = document.getElementById('timer');
+            timerEl.classList.add('show');
+            
+            timerInterval = setInterval(() => {
+                const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
+                timerEl.textContent = `⏱️ Processing time: ${elapsed}s`;
+            }, 100);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = `✅ Completed in ${elapsed}s`;
+        }
+
+        // Draw image on canvas with aspect ratio and background
+        function drawImage(canvas, ctx, image, settings) {
+            let targetWidth, targetHeight;
+            const maxWidth = 800;
+            const maxHeight = 600;
+
+            if (settings.ratio === 'original') {
+                targetWidth = image.width;
+                targetHeight = image.height;
+            } else {
+                const [w, h] = settings.ratio.split(':').map(Number);
+                const aspectRatio = w / h;
+                
+                if (image.width / image.height > aspectRatio) {
+                    targetHeight = image.height;
+                    targetWidth = targetHeight * aspectRatio;
+                } else {
+                    targetWidth = image.width;
+                    targetHeight = targetWidth / aspectRatio;
+                }
+            }
+
+            // Scale to fit max dimensions
+            if (targetWidth > maxWidth || targetHeight > maxHeight) {
+                const scale = Math.min(maxWidth / targetWidth, maxHeight / targetHeight);
+                targetWidth *= scale;
+                targetHeight *= scale;
+            }
+
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            // Fill background
+            ctx.fillStyle = settings.bgColor;
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+            // Draw image centered
+            const x = (targetWidth - (image.width * (targetWidth / (settings.ratio === 'original' ? image.width : targetWidth)))) / 2;
+            const y = (targetHeight - (image.height * (targetHeight / (settings.ratio === 'original' ? image.height : targetHeight)))) / 2;
+            
+            ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+            canvas.classList.add('show');
+        }
+
+        // Update canvas
+        function updateOriginalCanvas() {
+            if (originalImage) {
+                drawImage(originalCanvas, originalCtx, originalImage, originalSettings);
+            }
+        }
+
+        function updateResultCanvas() {
+            if (processedImage) {
+                drawImage(resultCanvas, resultCtx, processedImage, resultSettings);
+            }
+        }
+
+        // Load background removal library with multi-CDN fallback
+        async function loadBackgroundRemoval() {
+            const cdnSources = [
+                "https://unpkg.com/@imgly/background-removal@1.4.5/dist/browser.mjs",
+                "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.mjs",
+                "https://esm.sh/@imgly/background-removal@1.4.5"
+            ];
+
+            for (const source of cdnSources) {
+                try {
+                    console.log(`Trying to load from: ${source}`);
+                    showStatus('Loading AI model...', 'info');
+                    const module = await import(source);
+                    showStatus('✅ Ready! Upload an image to begin.', 'success');
+                    console.log("Module loaded successfully from:", source);
+                    return module.removeBackground;
+                } catch (error) {
+                    console.error(`Failed to load from ${source}:`, error);
+                }
+            }
+            
+            throw new Error("Could not load from any CDN source");
+        }
+
+        let removeBackground;
+
+        // Load the library
+        try {
+            removeBackground = await loadBackgroundRemoval();
+        } catch (error) {
+            showStatus('❌ Failed to load AI library. Please try refreshing the page.', 'error');
+            console.error("All CDN sources failed:", error);
+        }
+
+        const upload = document.getElementById("upload");
+        const removeBtn = document.getElementById("removeBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+
+        let selectedFile;
+
+        // File upload handler
+        upload.addEventListener("change", function() {
+            selectedFile = upload.files[0];
+            
+            if (!selectedFile) return;
+
+            if (!selectedFile.type.startsWith('image/')) {
+                showStatus('⚠️ Please select a valid image file', 'error');
+                return;
+            }
+
+            // Load and display original image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                originalImage = new Image();
+                originalImage.onload = function() {
+                    updateOriginalCanvas();
+                    document.getElementById('originalPlaceholder').style.display = 'none';
+                    document.getElementById('originalEditor').classList.add('show');
+                    showStatus('✅ Image loaded! Click "Remove Background" to process.', 'success');
+                };
+                originalImage.src = e.target.result;
+                originalImageData = e.target.result;
+            };
+            reader.readAsDataURL(selectedFile);
+
+            // Reset result
+            resultCanvas.classList.remove('show');
+            document.getElementById('resultPlaceholder').style.display = 'block';
+            document.getElementById('resultEditor').classList.remove('show');
+            downloadBtn.classList.remove('show');
+            removeBtn.disabled = false;
+        });
+
+        // Background removal with Web Workers (threading)
+        removeBtn.onclick = async function() {
+            if (!selectedFile) {
+                showStatus('⚠️ Please select an image first', 'error');
+                return;
+            }
+
+            if (!removeBackground) {
+                showStatus('❌ AI model not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
+            try {
+                removeBtn.textContent = "⏳ Processing...";
+                removeBtn.disabled = true;
+                showStatus('🔄 Removing background using AI... Please wait.', 'info');
+                
+                startTimer();
+
+                // Use config for faster processing with threading
+                const config = {
+                    progress: (key, current, total) => {
+                        console.log(`Progress ${key}: ${current} of ${total}`);
+                    },
+                    // Enable multi-threading if supported
+                    model: 'medium', // Faster model
+                };
+
+                const blob = await removeBackground(selectedFile, config);
+                
+                stopTimer();
+
+                // Load processed image
+                const url = URL.createObjectURL(blob);
+                processedImage = new Image();
+                processedImage.onload = function() {
+                    updateResultCanvas();
+                    document.getElementById('resultPlaceholder').style.display = 'none';
+                    document.getElementById('resultEditor').classList.add('show');
+                    
+                    downloadBtn.href = url;
+                    downloadBtn.download = `no-bg-${selectedFile.name.split('.')[0]}.png`;
+                    downloadBtn.classList.add('show');
+
+                    removeBtn.textContent = "Remove Background";
+                    removeBtn.disabled = false;
+                    showStatus('✅ Background removed successfully!', 'success');
+                };
+                processedImage.src = url;
+
+            } catch (error) {
+                if (timerInterval) stopTimer();
+                console.error("Error removing background:", error);
+                showStatus('❌ Error: ' + error.message, 'error');
+                removeBtn.textContent = "Remove Background";
+                removeBtn.disabled = false;
+            }
+        };
+
+        // Ratio button handlers
+        document.querySelectorAll('.ratio-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const target = this.dataset.target;
+                const ratio = this.dataset.ratio;
+                
+                // Update active state
+                this.parentElement.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update settings and redraw
+                if (target === 'original') {
+                    originalSettings.ratio = ratio;
+                    updateOriginalCanvas();
+                } else {
+                    resultSettings.ratio = ratio;
+                    updateResultCanvas();
+                }
+            });
+        });
+
+        // Color picker handlers
+        document.getElementById('originalColorPicker').addEventListener('input', function() {
+            originalSettings.bgColor = this.value;
+            updateOriginalCanvas();
+        });
+
+        document.getElementById('resultColorPicker').addEventListener('input', function() {
+            resultSettings.bgColor = this.value;
+            updateResultCanvas();
+        });
+
+        // Color preset handlers
+        document.querySelectorAll('.color-preset').forEach(preset => {
+            preset.addEventListener('click', function() {
+                const target = this.dataset.target;
+                const color = this.dataset.color;
+                
+                if (target === 'original') {
+                    originalSettings.bgColor = color;
+                    document.getElementById('originalColorPicker').value = color;
+                    updateOriginalCanvas();
+                } else {
+                    resultSettings.bgColor = color;
+                    document.getElementById('resultColorPicker').value = color;
+                    updateResultCanvas();
+                }
+            });
+        });
+
+        // Download with current canvas settings
+        downloadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            resultCanvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `edited-${selectedFile.name.split('.')[0]}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
+    </script>
+</body>
+</html>
